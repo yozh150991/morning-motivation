@@ -1,0 +1,10 @@
+[Unit]
+Description=Ранкова мотивація — розсилка цитат
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/morning-push
+EnvironmentFile=/opt/morning-push/.env
+ExecStart=/opt/morning-push/venv/bin/python /opt/morning-push/send_morning.py

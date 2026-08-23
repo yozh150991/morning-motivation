@@ -1,0 +1,15 @@
+# Залежності та білди
+app/node_modules/
+app/dist/
+app/dev-dist/
+
+# Секрети — ніколи не комітити
+sender/.env
+
+# Python
+sender/venv/
+__pycache__/
+*.pyc
+
+# Системне
+.DS_Store

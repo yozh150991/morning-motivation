@@ -1,0 +1,10 @@
+[Unit]
+Description=Ранкова мотивація — щодня о 8:00 за Варшавою
+
+[Timer]
+OnCalendar=*-*-* 08:00:00 Europe/Warsaw
+# Якщо ВМ була вимкнена о 8:00 — надішле одразу після ввімкнення
+Persistent=true
+
+[Install]
+WantedBy=timers.target
