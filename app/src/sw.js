@@ -46,12 +46,17 @@ self.addEventListener('push', (event) => {
     quotes.map((q) => (q.author ? `${q.text} — ${q.author}` : q.text)).join('\n\n') ||
     'Нова ранкова добірка чекає в застосунку.'
 
-  const options = {
+    const options = {
     body,
     icon: new URL('icons/icon-192.png', self.registration.scope).href,
     badge: new URL('icons/badge-96.png', self.registration.scope).href,
     tag: data.date ? `morning-${data.date}` : 'morning',
     renotify: false,
+    // Сповіщення висить, доки не прибереш його сам
+    requireInteraction: true,
+    // Вібрація: коротко — пауза — коротко
+    vibrate: [200, 100, 200],
+    timestamp: Date.now(),
     data: { url: self.registration.scope },
   }
 
