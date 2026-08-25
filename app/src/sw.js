@@ -46,22 +46,27 @@ self.addEventListener('push', (event) => {
     quotes.map((q) => (q.author ? `${q.text} — ${q.author}` : q.text)).join('\n\n') ||
     'Нова ранкова добірка чекає в застосунку.'
 
-    const options = {
+   const options = {
     body,
-    icon: new URL('icons/icon-192.png', self.registration.scope).href,
-    badge: new URL('icons/badge-96.png', self.registration.scope).href,
+    icon: 'icons/icon-192.png',
+    badge: 'icons/badge-96.png',
     tag: data.date ? `morning-${data.date}` : 'morning',
     renotify: false,
-    // Сповіщення висить, доки не прибереш його сам
     requireInteraction: true,
-    // Вібрація: коротко — пауза — коротко
     vibrate: [200, 100, 200],
     timestamp: Date.now(),
-    data: { url: self.registration.scope },
+    data: { url: './' },
   }
 
   event.waitUntil(
-    self.registration.showNotification(data.title || 'Ранкова мотивація ☀️', options)
+    self.registration
+      .showNotification(data.title || 'Ранкова мотивація ☀️', options)
+      .catch((err) => {
+        // Якщо щось пішло не так — показуємо найпростіше сповіщення,
+        // щоб користувач принаймні дізнався про нову добірку
+        console.error('showNotification failed:', err)
+        return self.registration.showNotification('Ранкова мотивація ☀️', { body })
+      })
   )
 })
 
