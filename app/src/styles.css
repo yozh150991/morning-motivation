@@ -220,6 +220,7 @@ code {
   line-height: 1.38;
   margin: 0;
   color: var(--paper);
+  white-space: pre-wrap;
 }
 
 .quote figcaption {
@@ -333,6 +334,7 @@ code {
   font-size: 18.5px;
   line-height: 1.4;
   margin: 0 0 4px;
+  white-space: pre-wrap;
 }
 
 .quote-author {
@@ -363,6 +365,7 @@ code {
   font-size: 17px;
   line-height: 1.4;
   margin: 0 0 8px;
+  white-space: pre-wrap;
 }
 
 /* ── PIN ───────────────────────────────────────────────────── */
