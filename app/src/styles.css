@@ -220,7 +220,6 @@ code {
   line-height: 1.38;
   margin: 0;
   color: var(--paper);
-  white-space: pre-wrap;
 }
 
 .quote figcaption {
@@ -334,7 +333,6 @@ code {
   font-size: 18.5px;
   line-height: 1.4;
   margin: 0 0 4px;
-  white-space: pre-wrap;
 }
 
 .quote-author {
@@ -365,7 +363,6 @@ code {
   font-size: 17px;
   line-height: 1.4;
   margin: 0 0 8px;
-  white-space: pre-wrap;
 }
 
 /* ── PIN ───────────────────────────────────────────────────── */
@@ -492,4 +489,55 @@ code {
   .sun {
     transition: none;
   }
+}
+
+/* Збереження абзаців і переносів рядків у цитатах */
+.quote blockquote,
+.quote-item .quote-text,
+.history-quote {
+  white-space: pre-wrap;
+}
+
+/* Блок однієї добірки (ранкова / вечірня) */
+.slot {
+  margin-bottom: 30px;
+  padding-bottom: 22px;
+  border-bottom: 1px solid rgba(174, 180, 214, 0.12);
+}
+
+.slot:last-of-type {
+  border-bottom: none;
+  padding-bottom: 4px;
+}
+
+.slot-label {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ray);
+  margin: 0 0 2px;
+}
+
+.slot .quotes-of-day {
+  margin: 18px 0 20px;
+}
+
+/* Кнопка «Прочитано» */
+.read-btn {
+  display: block;
+  width: 100%;
+  padding: 14px 16px;
+  font-size: 16px;
+  margin-bottom: 8px;
+}
+
+/* Позначка після прочитання */
+.read-mark {
+  font-size: 14.5px;
+  font-weight: 500;
+  color: var(--ray);
+  text-align: center;
+  padding: 10px 0;
+  margin: 0;
 }
