@@ -29,7 +29,7 @@ import requests
 from pywebpush import webpush, WebPushException
 
 TZ = ZoneInfo("Europe/Warsaw")
-QUOTES_PER_MORNING = (2, 3)  # щоранку випадково 2 або 3
+QUOTES_PER_MORNING = (1, )  # щоранку випадково 1
 PUSH_TTL = 6 * 3600          # push актуальний 6 годин
 
 

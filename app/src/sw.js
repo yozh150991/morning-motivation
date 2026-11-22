@@ -48,7 +48,7 @@ self.addEventListener('push', (event) => {
     quotes.map((q) => (q.author ? `${q.text} — ${q.author}` : q.text)).join('\n\n') ||
     'Нова добірка чекає в застосунку.'
 
-  const options = {
+   const options = {
     body,
     icon: 'icons/icon-192.png',
     badge: 'icons/badge-96.png',
