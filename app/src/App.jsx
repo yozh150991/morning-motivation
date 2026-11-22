@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { loadSettings } from './lib/supabase.js'
+import { ensureSubscription } from './lib/push.js'
 import { isUnlocked } from './lib/pin.js'
 import PinGate from './components/PinGate.jsx'
 import Today from './components/Today.jsx'
@@ -44,6 +45,17 @@ export default function App() {
   useEffect(() => {
     refreshSettings()
   }, [refreshSettings])
+
+  // Тихо перевіряємо підписку при кожному відкритті застосунку
+  // і при поверненні з фону — так зникла підписка відновлюється сама.
+  useEffect(() => {
+    const check = () => {
+      if (document.visibilityState === 'visible') ensureSubscription().catch(() => {})
+    }
+    check()
+    document.addEventListener('visibilitychange', check)
+    return () => document.removeEventListener('visibilitychange', check)
+  }, [])
 
   if (loadError) {
     return (

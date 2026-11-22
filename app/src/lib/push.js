@@ -31,7 +31,39 @@ export async function subscriptionState() {
   return sub ? 'on' : 'off'
 }
 
-/** Вмикає ранкові сповіщення на цьому пристрої */
+/**
+ * Просить браузер не видаляти дані сайту при нестачі місця.
+ * Без цього Chrome на Android може вичистити сховище разом із
+ * реєстрацією сервіс-воркера — і підписка зникає «сама собою».
+ */
+async function requestPersistentStorage() {
+  try {
+    if (navigator.storage?.persist) {
+      const already = await navigator.storage.persisted()
+      if (!already) await navigator.storage.persist()
+    }
+  } catch {
+    // не критично — просто йдемо далі
+  }
+}
+
+/** Записує підписку в базу (upsert за endpoint) */
+async function saveSubscription(sub) {
+  const json = sub.toJSON()
+  const { error } = await sb.from('push_subscriptions').upsert(
+    {
+      endpoint: json.endpoint,
+      p256dh: json.keys.p256dh,
+      auth: json.keys.auth,
+      user_agent: navigator.userAgent.slice(0, 250),
+      last_seen_at: new Date().toISOString(),
+    },
+    { onConflict: 'endpoint' }
+  )
+  if (error) throw error
+}
+
+/** Вмикає сповіщення на цьому пристрої */
 export async function enablePush() {
   const permission = await Notification.requestPermission()
   if (permission !== 'granted') {
@@ -41,22 +73,50 @@ export async function enablePush() {
         : 'Дозвіл не надано.'
     )
   }
+  await requestPersistentStorage()
   const reg = await navigator.serviceWorker.ready
   const sub = await reg.pushManager.subscribe({
     userVisibleOnly: true,
     applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
   })
-  const json = sub.toJSON()
-  const { error } = await sb.from('push_subscriptions').upsert(
-    {
-      endpoint: json.endpoint,
-      p256dh: json.keys.p256dh,
-      auth: json.keys.auth,
-      user_agent: navigator.userAgent.slice(0, 250),
-    },
-    { onConflict: 'endpoint' }
-  )
-  if (error) throw error
+  await saveSubscription(sub)
+}
+
+/**
+ * Тихе самовідновлення — викликається при кожному відкритті застосунку.
+ *
+ * Chrome час від часу змінює endpoint підписки (після оновлення браузера,
+ * очищення сховища, довгої неактивності). Тоді сервер отримує 410,
+ * видаляє рядок — і розсилка «мовчить», хоча в налаштуваннях усе ввімкнено.
+ *
+ * Ця функція: якщо дозвіл є, але підписки немає — створює заново;
+ * якщо є — освіжає last_seen_at, щоб було видно, що вона жива.
+ * Повертає стан після перевірки.
+ */
+export async function ensureSubscription() {
+  if (!pushSupported()) return 'unsupported'
+  if (Notification.permission !== 'granted') {
+    return Notification.permission === 'denied' ? 'blocked' : 'off'
+  }
+
+  try {
+    await requestPersistentStorage()
+    const reg = await navigator.serviceWorker.ready
+    let sub = await reg.pushManager.getSubscription()
+
+    if (!sub) {
+      // Дозвіл є, підписки немає — відновлюємо мовчки
+      sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+      })
+    }
+
+    await saveSubscription(sub)
+    return 'on'
+  } catch {
+    return 'off'
+  }
 }
 
 /** Вимикає сповіщення на цьому пристрої */
@@ -69,12 +129,12 @@ export async function disablePush() {
   await sb.from('push_subscriptions').delete().eq('endpoint', endpoint)
 }
 
-/** Локальне тестове сповіщення (перевіряє відображення на цьому пристрої) */
+/** Локальне тестове сповіщення */
 export async function showLocalTest() {
   const reg = await navigator.serviceWorker.ready
   await reg.showNotification('Тест ✅', {
-    body: 'Сповіщення працюють. Ранкова добірка приходитиме о 8:00.',
-    icon: new URL('icons/icon-192.png', reg.scope).href,
-    badge: new URL('icons/badge-96.png', reg.scope).href,
+    body: 'Сповіщення працюють. Добірки приходитимуть за розкладом.',
+    icon: 'icons/icon-192.png',
+    badge: 'icons/badge-96.png',
   })
 }

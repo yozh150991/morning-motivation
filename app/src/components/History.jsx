@@ -1,38 +1,48 @@
 import { useEffect, useState } from 'react'
 import { sb } from '../lib/supabase.js'
 import { formatDayShort } from '../lib/dates.js'
+import { SLOT_META } from './Today.jsx'
 
 export default function History() {
-  const [days, setDays] = useState(null)
+  const [rows, setRows] = useState(null)
 
   useEffect(() => {
     ;(async () => {
       const { data } = await sb
         .from('daily_selections')
-        .select('day,quotes')
+        .select('day,slot,quotes,read_at')
         .order('day', { ascending: false })
-        .limit(60)
-      setDays(data || [])
+        .limit(90)
+      // Порожні добірки (коли пул був порожній) в історії не показуємо
+      const filtered = (data || []).filter((r) => (r.quotes || []).length > 0)
+      // У межах одного дня — ранок перед вечором
+      filtered.sort((a, b) => {
+        if (a.day !== b.day) return a.day < b.day ? 1 : -1
+        return (SLOT_META[a.slot]?.order ?? 9) - (SLOT_META[b.slot]?.order ?? 9)
+      })
+      setRows(filtered)
     })()
   }, [])
 
   return (
     <div>
-      <p className="eyebrow">Архів ранків</p>
+      <p className="eyebrow">Архів добірок</p>
       <h1 className="day-title">Історія</h1>
 
-      {days === null ? (
+      {rows === null ? (
         <div className="loader" aria-label="Завантаження" />
-      ) : days.length === 0 ? (
+      ) : rows.length === 0 ? (
         <div className="card">
-          <p className="muted">Історія зʼявиться після першої ранкової розсилки.</p>
+          <p className="muted">Історія зʼявиться після першої розсилки.</p>
         </div>
       ) : (
         <ul className="history-list">
-          {days.map((d) => (
-            <li className="card history-item" key={d.day}>
-              <p className="history-date">{formatDayShort(d.day)}</p>
-              {d.quotes.map((q, i) => (
+          {rows.map((r) => (
+            <li className="card history-item" key={`${r.day}-${r.slot}`}>
+              <p className="history-date">
+                {formatDayShort(r.day)} · {SLOT_META[r.slot]?.label || r.slot}
+              </p>
+              {r.quotes.map((q, i) => (
                 <p className="history-quote" key={i}>
                   {q.text}
                   {q.author && <span className="muted"> — {q.author}</span>}
